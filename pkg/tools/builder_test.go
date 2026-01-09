@@ -9,8 +9,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-
-	_ "github.com/aalobaidi/ggRMCP/pkg/testproto"
+	//_ "github.com/aalobaidi/ggRMCP/pkg/testproto"
 )
 
 func TestBuildTool_RecursiveTypes(t *testing.T) {

@@ -135,6 +135,7 @@ func main() {
 		zap.Bool("development", config.Development))
 
 	// Create service discoverer with FileDescriptorSet support
+	// 创建服务发现器，支持FileDescriptorSet
 	descriptorConfig := appconfig.DescriptorSetConfig{
 		Enabled:              config.DescriptorPath != "",
 		Path:                 config.DescriptorPath,
@@ -142,6 +143,7 @@ func main() {
 		IncludeSourceInfo:    true,
 	}
 
+	// 创建服务发现器
 	serviceDiscoverer, err := grpc.NewServiceDiscoverer(
 		config.GRPCHost,
 		config.GRPCPort,
@@ -156,6 +158,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// 连接到gRPC服务器
 	if err := serviceDiscoverer.Connect(ctx); err != nil {
 		logger.Fatal("Failed to connect to gRPC server", zap.Error(err))
 	}
@@ -166,17 +169,20 @@ func main() {
 	}()
 
 	// Discover services (will use FileDescriptorSet if available, fallback to reflection)
+	// 发现服务（如果可用，将使用FileDescriptorSet，否则回退到反射）
 	if err := serviceDiscoverer.DiscoverServices(ctx); err != nil {
 		logger.Fatal("Failed to discover services", zap.Error(err))
 	}
 
 	// Log service discovery completion
+	// 记录服务发现完成
 	stats := serviceDiscoverer.GetServiceStats()
 	logger.Info("Service discovery completed",
 		zap.Any("serviceCount", stats["serviceCount"]),
 		zap.Int("methodCount", serviceDiscoverer.GetMethodCount()))
 
 	// Create session manager
+	// 创建会话管理器
 	sessionManager := session.NewManager(logger)
 	defer func() {
 		if err := sessionManager.Close(); err != nil {
@@ -185,9 +191,11 @@ func main() {
 	}()
 
 	// Create tool builder
+	// 创建工具构建器
 	toolBuilder := tools.NewMCPToolBuilder(logger)
 
 	// Create HTTP handler with default header forwarding config
+	// 使用默认的头转发配置创建HTTP处理程序
 	defaultConfig := appconfig.Default()
 	handler := server.NewHandler(logger, serviceDiscoverer, sessionManager, toolBuilder, defaultConfig.GRPC.HeaderForwarding)
 

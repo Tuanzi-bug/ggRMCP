@@ -12,6 +12,8 @@ import (
 
 // MethodInfo represents information about a gRPC method with service context
 // This struct contains all necessary information for method invocation and tool generation
+// 方法信息表示具有服务上下文的 gRPC 方法的信息
+// 该结构包含方法调用和工具生成所需的所有必要信息
 type MethodInfo struct {
 	// Method identification
 	Name     string // Method name (e.g., "SayHello")
