@@ -13,6 +13,9 @@ services:
       - "50051:50051"
     environment:
       - PORT=50051
+    # Share descriptor files with gateway via named volume
+    volumes:
+      - descriptor-cache:/app/descriptors
     networks:
       - grpc-net
     healthcheck:
@@ -46,6 +49,11 @@ services:
       - HTTP_PORT=50053
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - DEV_MODE=${DEV_MODE:-false}
+      # FileDescriptorSet configuration (shared from hello-service)
+      - DESCRIPTOR_PATH=/app/descriptors/hello.binpb
+    # Mount shared descriptor volume from hello-service (read-only)
+    volumes:
+      - descriptor-cache:/app/descriptors:ro
     networks:
       - grpc-net
     depends_on:
@@ -69,8 +77,8 @@ networks:
     driver: bridge
     name: ggrmcp-network
 
-# Optional: Add volumes for persistent data
-# volumes:
-#   descriptor-cache:
-#     driver: local
+# Named volume for sharing FileDescriptorSet files between services
+volumes:
+  descriptor-cache:
+    driver: local
 

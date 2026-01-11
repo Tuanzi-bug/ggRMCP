@@ -96,6 +96,7 @@ ENV GRPC_HOST=localhost \
     DESCRIPTOR_PATH=""
 
 # Use shell form to allow environment variable expansion
+# The ${DESCRIPTOR_PATH:+--descriptor=${DESCRIPTOR_PATH}} syntax adds the flag only if DESCRIPTOR_PATH is set
 CMD /app/grmcp \
     --grpc-host=${GRPC_HOST} \
     --grpc-port=${GRPC_PORT} \
