@@ -8,7 +8,7 @@ FROM golang:1.24-alpine AS builder
 
 # Build argument to control mirror selection
 # Usage: docker build --build-arg USE_CHINA_MIRROR=true .
-ARG USE_CHINA_MIRROR=true
+ARG USE_CHINA_MIRROR=false
 
 # Conditionally replace Alpine mirrors for China users (faster apk downloads)
 RUN if [ "$USE_CHINA_MIRROR" = "true" ]; then \
@@ -71,7 +71,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 FROM alpine:latest AS runner
 
 # Build argument (inherited from builder stage)
-ARG USE_CHINA_MIRROR=true
+ARG USE_CHINA_MIRROR=false
 
 # Conditionally replace Alpine mirrors for runtime dependencies
 RUN if [ "$USE_CHINA_MIRROR" = "true" ]; then \
