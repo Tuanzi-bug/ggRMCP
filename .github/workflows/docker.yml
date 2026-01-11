@@ -26,6 +26,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set lowercase image name
+      id: image_name
+      run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -41,7 +45,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -71,7 +75,7 @@ jobs:
         file: ./examples/hello-service/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/hello-service:${{ github.ref_name }}
+        tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}/hello-service:${{ github.ref_name }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -85,10 +89,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set lowercase image name
+      id: image_name
+      run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
     - name: Run Trivy vulnerability scanner on Gateway image
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+        image-ref: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:${{ github.ref_name }}
         format: 'sarif'
         output: 'trivy-gateway.sarif'
 
@@ -101,7 +109,7 @@ jobs:
     - name: Run Trivy vulnerability scanner on Hello Service image
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/hello-service:${{ github.ref_name }}
+        image-ref: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}/hello-service:${{ github.ref_name }}
         format: 'sarif'
         output: 'trivy-hello.sarif'
 
