@@ -24,13 +24,10 @@ RUN if [ "$USE_CHINA_MIRROR" = "true" ]; then \
         go env -w GOPROXY=https://goproxy.cn,https://goproxy.io,direct; \
     fi
 
-# Install Go protobuf plugins with compatible versions
-RUN echo "Installing protoc-gen-go..." && \
-    go install -v google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
-    echo "Installing protoc-gen-go-grpc..." && \
-    go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest && \
-    echo "Plugins installed successfully" && \
-    ls -la /go/bin/
+# Install Go protobuf plugins (reference: Makefile install-tools)
+# Use v1.5.1 for protoc-gen-go-grpc to maintain Go 1.23 compatibility
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 
 # Set working directory
 WORKDIR /build
@@ -47,6 +44,15 @@ COPY proto/*.proto ./proto/
 RUN protoc --proto_path=proto \
     --go_out=proto --go_opt=paths=source_relative \
     --go-grpc_out=proto --go-grpc_opt=paths=source_relative \
+    proto/*.proto
+
+# Generate FileDescriptorSet (.binpb) for ggRMCP Gateway (reference: Makefile descriptor)
+# This includes source info and comments for enhanced MCP tool descriptions
+RUN mkdir -p build && \
+    protoc --proto_path=proto \
+    --descriptor_set_out=build/hello.binpb \
+    --include_source_info \
+    --include_imports \
     proto/*.proto
 
 # Copy only application source code (main.go), not the entire directory
@@ -80,8 +86,12 @@ RUN apk --no-cache add ca-certificates && \
 # Set working directory
 WORKDIR /app
 
-# Copy the compiled binary from builder stage
+# Create directory for descriptor files that will be shared with gateway
+RUN mkdir -p /app/descriptors
+
+# Copy the compiled binary and descriptor file from builder stage
 COPY --from=builder /build/hello-service /app/hello-service
+COPY --from=builder /build/build/hello.binpb /app/descriptors/hello.binpb
 
 # Change ownership
 RUN chown -R appuser:appuser /app
