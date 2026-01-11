@@ -105,6 +105,7 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-gateway.sarif'
+        category: 'trivy-gateway'
 
     - name: Run Trivy vulnerability scanner on Hello Service image
       uses: aquasecurity/trivy-action@master
@@ -118,6 +119,7 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-hello.sarif'
+        category: 'trivy-hello-service'
 
   test-docker:
     needs: build-and-push
